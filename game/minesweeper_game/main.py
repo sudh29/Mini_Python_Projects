@@ -1,4 +1,5 @@
-from tkinter import *
+from tkinter import Tk, Frame, Label
+
 import setting
 import utils
 from cell import Cell
