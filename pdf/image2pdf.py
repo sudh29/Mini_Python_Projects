@@ -20,6 +20,8 @@ import logging
 from pathlib import Path
 from typing import List
 
+import img2pdf
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

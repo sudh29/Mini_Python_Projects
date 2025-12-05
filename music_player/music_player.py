@@ -41,14 +41,14 @@ os.environ["KIVY_AUDIO"] = "sdl2"
 
 # Try to import alternative audio players
 try:
-    import vlc
+    import vlc  # noqa: F401
 
     HAS_VLC = True
 except ImportError:
     HAS_VLC = False
 
 try:
-    import pygame
+    import pygame  # noqa: F401
 
     HAS_PYGAME = False  # Don't use pygame as it has issues with Kivy
 except ImportError:

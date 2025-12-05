@@ -22,7 +22,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 
 try:
     import pytesseract
@@ -36,8 +36,7 @@ except ImportError as e:
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -51,9 +50,7 @@ if sys.platform == "win32":
 
 
 def extract_text_from_image(
-    image_path: str,
-    language: str = "eng",
-    preprocess: bool = False
+    image_path: str, language: str = "eng", preprocess: bool = False
 ) -> Optional[str]:
     """
     Extract text from a single image file using OCR.
@@ -75,22 +72,22 @@ def extract_text_from_image(
 
     try:
         logger.info(f"Processing image: {image_path}")
-        
+
         # Open the image
         image = Image.open(image_path)
-        
+
         # Apply preprocessing if requested
         if preprocess:
             image = _preprocess_image(image)
-        
+
         # Extract text using Tesseract
         text = pytesseract.image_to_string(image, lang=language)
-        
+
         if text.strip():
             logger.info(f"Successfully extracted {len(text)} characters")
         else:
             logger.warning("No text detected in image")
-        
+
         return text
 
     except Exception as e:
@@ -98,7 +95,7 @@ def extract_text_from_image(
         raise
 
 
-def _preprocess_image(image: 'Image.Image') -> 'Image.Image':
+def _preprocess_image(image: "Image.Image") -> "Image.Image":
     """
     Apply preprocessing to improve OCR accuracy.
 
@@ -109,22 +106,22 @@ def _preprocess_image(image: 'Image.Image') -> 'Image.Image':
         Image.Image: Preprocessed image
     """
     from PIL import ImageEnhance, ImageFilter
-    
+
     # Convert to grayscale
-    if image.mode != 'L':
-        image = image.convert('L')
-    
+    if image.mode != "L":
+        image = image.convert("L")
+
     # Increase contrast
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2)
-    
+
     # Apply sharpness
     sharpness_enhancer = ImageEnhance.Sharpness(image)
     image = sharpness_enhancer.enhance(2)
-    
+
     # Apply slight blur to remove noise
     image = image.filter(ImageFilter.MedianFilter())
-    
+
     return image
 
 
@@ -132,7 +129,7 @@ def extract_text_from_directory(
     directory: str,
     output_file: Optional[str] = None,
     language: str = "eng",
-    recursive: bool = False
+    recursive: bool = False,
 ) -> Dict[str, str]:
     """
     Extract text from all images in a directory.
@@ -153,11 +150,11 @@ def extract_text_from_directory(
         raise ValueError(f"Directory not found: {directory}")
 
     results = {}
-    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff'}
-    
+    image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"}
+
     try:
         logger.info(f"Processing directory: {directory}")
-        
+
         # Get all image files
         if recursive:
             image_files = []
@@ -171,9 +168,9 @@ def extract_text_from_directory(
                 for f in os.listdir(directory)
                 if Path(f).suffix.lower() in image_extensions
             ]
-        
+
         logger.info(f"Found {len(image_files)} image(s)")
-        
+
         # Process each image
         for idx, image_file in enumerate(sorted(image_files), 1):
             try:
@@ -183,12 +180,14 @@ def extract_text_from_directory(
             except Exception as e:
                 logger.warning(f"Failed to process {image_file}: {str(e)}")
                 results[image_file] = None
-        
+
         # Save results if output file specified
         if output_file:
             _save_results(results, output_file)
-        
-        logger.info(f"Successfully processed {len([v for v in results.values() if v])}/{len(image_files)} images")
+
+        logger.info(
+            f"Successfully processed {len([v for v in results.values() if v])}/{len(image_files)} images"
+        )
         return results
 
     except Exception as e:
@@ -205,7 +204,7 @@ def _save_results(results: Dict[str, str], output_file: str) -> None:
         output_file: Path where results will be saved
     """
     try:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             for image_path, text in sorted(results.items()):
                 f.write(f"=== {image_path} ===\n")
                 if text:
@@ -213,7 +212,7 @@ def _save_results(results: Dict[str, str], output_file: str) -> None:
                 else:
                     f.write("[No text detected]\n")
                 f.write("\n\n")
-        
+
         logger.info(f"Results saved to: {output_file}")
     except Exception as e:
         logger.error(f"Error saving results: {str(e)}")
@@ -222,39 +221,25 @@ def _save_results(results: Dict[str, str], output_file: str) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Extract text from images using OCR"
+    parser = argparse.ArgumentParser(description="Extract text from images using OCR")
+    parser.add_argument("--image", type=str, help="Path to single image file")
+    parser.add_argument(
+        "--directory", type=str, help="Path to directory containing images"
     )
     parser.add_argument(
-        "--image",
-        type=str,
-        help="Path to single image file"
-    )
-    parser.add_argument(
-        "--directory",
-        type=str,
-        help="Path to directory containing images"
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        help="Output file to save results (optional)"
+        "--output", type=str, help="Output file to save results (optional)"
     )
     parser.add_argument(
         "--language",
         type=str,
         default="eng",
-        help="Tesseract language code (default: eng)"
+        help="Tesseract language code (default: eng)",
     )
     parser.add_argument(
-        "--preprocess",
-        action="store_true",
-        help="Apply image preprocessing before OCR"
+        "--preprocess", action="store_true", help="Apply image preprocessing before OCR"
     )
     parser.add_argument(
-        "--recursive",
-        action="store_true",
-        help="Recursively process subdirectories"
+        "--recursive", action="store_true", help="Recursively process subdirectories"
     )
 
     args = parser.parse_args()
@@ -263,9 +248,7 @@ if __name__ == "__main__":
     if args.image:
         try:
             text = extract_text_from_image(
-                args.image,
-                language=args.language,
-                preprocess=args.preprocess
+                args.image, language=args.language, preprocess=args.preprocess
             )
             print("=== Extracted Text ===")
             print(text if text else "[No text detected]")
@@ -279,7 +262,7 @@ if __name__ == "__main__":
             args.directory,
             output_file=args.output,
             language=args.language,
-            recursive=args.recursive
+            recursive=args.recursive,
         )
         if results:
             logger.info("Text extraction completed")
